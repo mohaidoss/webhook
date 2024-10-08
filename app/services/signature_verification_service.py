@@ -7,7 +7,7 @@ from math import floor
 from typing import Any, Dict, Union
 
 
-class SignatureVerificationService:
+class SignatureVerificationService:  # TODO: abstract this so we have 2 final services (one for webhooks that use svix signature validation, and another that only validates a Header API KEY)
     def __init__(self, secret_key: str):
         try:
             if isinstance(secret_key, str):
@@ -15,35 +15,13 @@ class SignatureVerificationService:
                     secret_key = secret_key[len("whsec_") :]
                 self._secret_key = base64.b64decode(secret_key)
         except Exception as e:
-            raise ValueError(f"Error decoding the value {secret_key}")
+            raise ValueError(f"Error decoding the value {secret_key},\nException: {e}")
 
         if isinstance(secret_key, bytes):
             self._secret_key = secret_key
 
         if not self._secret_key:
             raise ValueError("Cannot initialize with an invalid secret_key")
-
-    def verify_signature(self, payload: str, headers: Dict[str, str]) -> bool:
-        """
-        Verifies the HMAC SHA256 signature of the payload against the received signature.
-
-        Args:
-        - payload (str): The raw body of the webhook payload.
-        - headers (Dict): The received header from the request
-
-        Returns:
-        - bool: Whether the signature is valid or not.
-        """
-        try:
-            computed_signature = hmac.new(
-                self.secret_key.encode(), payload.encode(), hashlib.sha256
-            ).hexdigest()
-            signature = headers.get("signature")
-            return hmac.compare_digest(computed_signature, signature)
-
-        except Exception as e:
-            print(f'Error validating signature {e}')
-            return False
 
     def verify(self, data: Union[bytes, str], headers: Dict[str, str]) -> Any:
         data = data if isinstance(data, str) else data.decode()
