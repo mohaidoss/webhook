@@ -2,5 +2,6 @@ __pycache__
 .pytest*
 .venv
 .vscode
+.ruff_cache
 
 .env
